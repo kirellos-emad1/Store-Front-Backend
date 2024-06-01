@@ -25,7 +25,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -49,9 +49,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.userOrders = exports.addProduct = exports.createOrder = void 0;
 var express_1 = __importDefault(require("express"));
-var jwt_auth_1 = __importDefault(require("../Middleware/jwt_auth"));
 var orders_1 = require("../Models/orders");
 var order = new orders_1.orderModel();
 var createOrder = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
@@ -62,7 +62,7 @@ var createOrder = function (req, res) { return __awaiter(void 0, void 0, void 0,
                 _a.trys.push([0, 2, , 3]);
                 info = {
                     status: req.body.status,
-                    user_id: req.body.userInfo.id
+                    user_id: req.body.userInfo.id,
                 };
                 return [4 /*yield*/, order.create(info)];
             case 1:
@@ -77,6 +77,7 @@ var createOrder = function (req, res) { return __awaiter(void 0, void 0, void 0,
         }
     });
 }); };
+exports.createOrder = createOrder;
 var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var isOrdered, result, err_2;
     return __generator(this, function (_a) {
@@ -93,7 +94,7 @@ var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, 
                 if (isOrdered.status !== "active") {
                     return [2 /*return*/, res
                             .status(400)
-                            .json("Order is not active,product could not be added to order")];
+                            .json("Order is not active, product could not be added to order")];
                 }
                 return [4 /*yield*/, order.addProductToOrder(__assign(__assign({}, req.body), { order_id: req.params.id }))];
             case 2:
@@ -108,6 +109,7 @@ var addProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, 
         }
     });
 }); };
+exports.addProduct = addProduct;
 var userOrders = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var result, err_3;
     return __generator(this, function (_a) {
@@ -127,8 +129,9 @@ var userOrders = function (req, res) { return __awaiter(void 0, void 0, void 0, 
         }
     });
 }); };
-var orderRouts = express_1["default"].Router();
-orderRouts.post("/", jwt_auth_1["default"], createOrder);
-orderRouts.post("/:id/addproduct", jwt_auth_1["default"], addProduct);
-orderRouts.get("/userorders", jwt_auth_1["default"], userOrders);
-exports["default"] = orderRouts;
+exports.userOrders = userOrders;
+var orderRouts = express_1.default.Router();
+orderRouts.post("/", exports.createOrder);
+orderRouts.post("/:id/my-cart", exports.addProduct);
+orderRouts.get("/my-orders", exports.userOrders);
+exports.default = orderRouts;

@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -38,18 +38,18 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteProduct = exports.updateProduct = exports.create = exports.myProducts = exports.showSpecificProduct = exports.showAllProducts = void 0;
 var express_1 = __importDefault(require("express"));
 var products_1 = require("../Models/products");
-var jwt_auth_1 = __importDefault(require("../Middleware/jwt_auth"));
 var product = new products_1.productModel();
-var index = function (_req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var showAllProducts = function (_req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var result, err_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, product.index()];
+                return [4 /*yield*/, product.showAllProducts()];
             case 1:
                 result = _a.sent();
                 res.status(200).json(result);
@@ -62,13 +62,14 @@ var index = function (_req, res) { return __awaiter(void 0, void 0, void 0, func
         }
     });
 }); };
-var show = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+exports.showAllProducts = showAllProducts;
+var showSpecificProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var result, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, product.show(req.params.id)];
+                return [4 /*yield*/, product.showSpecificProduct(req.params.id)];
             case 1:
                 result = _a.sent();
                 if (!result)
@@ -83,15 +84,18 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
         }
     });
 }); };
-var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+exports.showSpecificProduct = showSpecificProduct;
+var myProducts = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var result, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, product.create(req.body)];
+                return [4 /*yield*/, product.myProducts(req.params.id)];
             case 1:
                 result = _a.sent();
+                if (!result)
+                    return [2 /*return*/, res.status(404).json({ error: "requested product doesn't exist" })];
                 res.status(200).json(result);
                 return [3 /*break*/, 3];
             case 2:
@@ -102,8 +106,81 @@ var create = function (req, res) { return __awaiter(void 0, void 0, void 0, func
         }
     });
 }); };
-var productRouts = express_1["default"].Router();
-productRouts.get('/', index);
-productRouts.get('/:id', show);
-productRouts.post('/', jwt_auth_1["default"], create);
-exports["default"] = productRouts;
+exports.myProducts = myProducts;
+var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, user_id, name_1, quantity, price, category, description, images, result, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body, user_id = _a.user_id, name_1 = _a.name, quantity = _a.quantity, price = _a.price, category = _a.category, description = _a.description, images = _a.images;
+                return [4 /*yield*/, product.create({
+                        user_id: user_id,
+                        name: name_1,
+                        price: price,
+                        category: category,
+                        description: description,
+                        images: images,
+                        quantity: quantity
+                    })];
+            case 1:
+                result = _b.sent();
+                res.status(200).json(result);
+                return [3 /*break*/, 3];
+            case 2:
+                err_4 = _b.sent();
+                res.status(400).json("".concat(err_4));
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.create = create;
+var updateProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var result, err_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, product.updateProduct(req.body)];
+            case 1:
+                result = _a.sent();
+                res.status(200).json(result);
+                return [3 /*break*/, 3];
+            case 2:
+                err_5 = _a.sent();
+                res.status(400).json(err_5);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateProduct = updateProduct;
+var deleteProduct = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var result, err_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, product.deleteProduct(req.params.id)];
+            case 1:
+                result = _a.sent();
+                res.status(200).json(result);
+                return [3 /*break*/, 3];
+            case 2:
+                err_6 = _a.sent();
+                res.status(400).json(err_6);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.deleteProduct = deleteProduct;
+var productRouts = express_1.default.Router();
+productRouts.get('/', exports.showAllProducts);
+productRouts.get('/:id', exports.showSpecificProduct);
+productRouts.get('/my_shop/:id', exports.myProducts);
+productRouts.post('/create', exports.create);
+productRouts.patch('/update', exports.updateProduct);
+productRouts.delete('/delete/:id', exports.deleteProduct);
+exports.default = productRouts;

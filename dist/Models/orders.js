@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -38,7 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.orderModel = void 0;
 var database_1 = __importDefault(require("../database"));
 var orderModel = /** @class */ (function () {
@@ -51,7 +51,7 @@ var orderModel = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
                         sql = "INSERT INTO orders (status, user_id) VALUES($1, $2) RETURNING *";
@@ -75,7 +75,7 @@ var orderModel = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
                         sql = "SELECT * FROM orders WHERE id=($1)";
@@ -99,7 +99,7 @@ var orderModel = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
                         sql = "INSERT INTO order_products (quantity, order_id, product_id) VALUES($1, $2, $3) RETURNING *";
@@ -114,7 +114,7 @@ var orderModel = /** @class */ (function () {
                         return [2 /*return*/, result.rows[0]];
                     case 3:
                         err_2 = _a.sent();
-                        throw new Error("Can't add product to order".concat(err_2));
+                        throw new Error("Can't add product to order ".concat(err_2));
                     case 4: return [2 /*return*/];
                 }
             });
@@ -127,7 +127,7 @@ var orderModel = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
                         sql = "select orders.user_id, orders.id as order_id, orders.status, order_products.quantity, products.name, products.price, products.id as product_id\n    from orders\n    join order_products on orders.id = order_products.order_id\n    join products on order_products.product_id = products.id\n    where user_id = $1";

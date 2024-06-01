@@ -11,13 +11,20 @@ const product = new products_1.productModel();
 const user = new users_1.userModel();
 async function testingDb() {
     const userData = {
-        firstname: "abc",
-        lastname: "cba",
-        hashpwd: "12345",
+        firstName: "abc",
+        lastName: "dfg",
+        email: "example@example.com",
+        password: "12345",
+        role: "ADMIN"
     };
     const productData = {
         name: "milk",
+        category: "drink",
+        description: 'healthy drink',
         price: 5,
+        images: ["img1.png", "img2.png"],
+        quantity: 5,
+        user_id: 1
     };
     await user.create(userData);
     await product.create(productData);

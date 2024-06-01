@@ -11,9 +11,9 @@ describe("Test Order Endpoints responses", () => {
     let token;
     beforeAll(async () => {
         const data = {
-            firstname: "abc",
-            lastname: "cba",
-            hashpwd: "12345",
+            firstName: "abc",
+            lastName: "cba",
+            password: "12345",
         };
         const response = await request.post("/users").send(data);
         token = response.body.token;
@@ -22,6 +22,7 @@ describe("Test Order Endpoints responses", () => {
             .send({
             name: "milk",
             price: 5,
+            category: 'Food'
         })
             .set("Authorization", `Bearer ${token}`);
     });
