@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -38,25 +38,80 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1["default"].config();
-var verifyAuthToken = function (req, res, next) { return __awaiter(void 0, void 0, void 0, function () {
-    var authHeader, token;
-    return __generator(this, function (_a) {
-        authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer")) {
-            return [2 /*return*/, res.status(401).json("Not Authorized")];
-        }
-        token = authHeader.split(" ")[1];
-        jsonwebtoken_1["default"].verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
+dotenv_1.default.config();
+var issueTokens = function (user) {
+    var accessToken = jsonwebtoken_1.default.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+    var refreshToken = jsonwebtoken_1.default.sign(user, process.env.REFRESH_TOKEN_SECRET);
+    return { accessToken: accessToken, refreshToken: refreshToken };
+};
+var verifyAccessToken = function (req, res, next) {
+    var authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer")) {
+        return res.status(401).json("Not Authorized");
+    }
+    var accessToken = authHeader.split(" ")[1];
+    try {
+        jsonwebtoken_1.default.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
             if (err)
-                return res.status(403).json("invalid token");
+                return res.status(403).json("Invalid token");
             req.body.userInfo = decoded;
             next();
         });
+    }
+    catch (error) {
+        return res.status(401).json("Invalid token");
+    }
+};
+var verifyRefreshToken = function (req, res, next) {
+    var refreshToken = req.cookies.REFRESH_TOKEN;
+    if (!refreshToken) {
+        return res.status(403).json("Refresh token not provided");
+    }
+    try {
+        var decoded = jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        req.body.userInfo = decoded;
+        next();
+    }
+    catch (error) {
+        return res.status(403).json("Invalid refresh token");
+    }
+};
+var refreshTokens = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var refreshToken, decodedToken, user, tokens;
+    return __generator(this, function (_a) {
+        refreshToken = req.body.refreshToken;
+        if (!refreshToken) {
+            return [2 /*return*/, res.status(401).json("Invalid token")];
+        }
+        try {
+            decodedToken = jsonwebtoken_1.default.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+            user = {
+                firstName: decodedToken.firstname,
+                lastName: decodedToken.lastname,
+                email: decodedToken.email,
+                id: decodedToken.id,
+                role: decodedToken.role,
+            };
+            tokens = issueTokens(user);
+            res.cookie("REFRESH-TOKEN", tokens.refreshToken, { httpOnly: true });
+            res.cookie("ACCESS-TOKEN", tokens.accessToken, {
+                httpOnly: true,
+                expires: new Date(Date.now() + 15 * 60 * 1000),
+            });
+            res.json(tokens);
+        }
+        catch (error) {
+            return [2 /*return*/, res.status(401).json("Invalid token")];
+        }
         return [2 /*return*/];
     });
 }); };
-exports["default"] = verifyAuthToken;
+exports.default = {
+    verifyAccessToken: verifyAccessToken,
+    refreshTokens: refreshTokens,
+    issueTokens: issueTokens,
+    verifyRefreshToken: verifyRefreshToken,
+};

@@ -13,13 +13,20 @@ const user = new userModel();
 
 export async function testingDb(): Promise < void > {
     const userData: userInfo = {
-        firstname: "abc",
-        lastname: "cba",
-        hashpwd: "12345",
+        firstName: "abc",
+        lastName: "dfg",
+        email:"example@example.com",
+        password: "12345",
+        role: "ADMIN"
     };
     const productData: Product = {
         name: "milk",
+        category:"drink",
+        description:'healthy drink',
         price: 5,
+        images:["img1.png","img2.png"],
+        quantity: 5,
+        user_id:1
     };
     await user.create(userData);
     await product.create(productData);

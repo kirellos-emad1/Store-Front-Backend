@@ -1,7 +1,18 @@
-create table users (
-  id serial primary key,
-  email varchar (255) not null unique,
-  firstName varchar(100) not null,
-  lastName varchar(100)  not null,
-  hashpwd varchar(255) not null
-  );
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE user_role AS ENUM ('ADMIN', 'USER');
+  END IF; 
+END $$;
+
+CREATE TABLE users (
+  id serial PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  firstName VARCHAR(100) NOT NULL,
+  lastName VARCHAR(100) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role user_role DEFAULT 'USER',
+  isEmailVerified BOOLEAN DEFAULT FALSE,
+  createdAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);

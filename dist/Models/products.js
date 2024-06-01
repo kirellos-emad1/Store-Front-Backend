@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -38,20 +38,20 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.productModel = void 0;
 var database_1 = __importDefault(require("../database"));
 var productModel = /** @class */ (function () {
     function productModel() {
     }
-    productModel.prototype.index = function () {
+    productModel.prototype.showAllProducts = function () {
         return __awaiter(this, void 0, void 0, function () {
             var myConn, sql, result, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
                         sql = "SELECT * FROM products";
@@ -68,14 +68,38 @@ var productModel = /** @class */ (function () {
             });
         });
     };
-    productModel.prototype.show = function (id) {
+    productModel.prototype.myProducts = function (user_id) {
         return __awaiter(this, void 0, void 0, function () {
             var myConn, sql, result, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
+                    case 1:
+                        myConn = _a.sent();
+                        sql = "SELECT * FROM products WHERE user_id=($1)";
+                        return [4 /*yield*/, myConn.query(sql, [user_id])];
+                    case 2:
+                        result = _a.sent();
+                        myConn.release();
+                        return [2 /*return*/, result.rows[0]];
+                    case 3:
+                        err_2 = _a.sent();
+                        throw new Error("Can't get this product ".concat(err_2));
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    productModel.prototype.showSpecificProduct = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            var myConn, sql, result, err_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
                         sql = "SELECT * FROM products WHERE id=($1)";
@@ -85,8 +109,8 @@ var productModel = /** @class */ (function () {
                         myConn.release();
                         return [2 /*return*/, result.rows[0]];
                     case 3:
-                        err_2 = _a.sent();
-                        throw new Error("There is no products for this id ".concat(err_2));
+                        err_3 = _a.sent();
+                        throw new Error("There is no products for this id ".concat(err_3));
                     case 4: return [2 /*return*/];
                 }
             });
@@ -94,23 +118,96 @@ var productModel = /** @class */ (function () {
     };
     productModel.prototype.create = function (product) {
         return __awaiter(this, void 0, void 0, function () {
-            var myConn, sql, result, err_3;
+            var myConn, sql1, result1, sql, result, err_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 6, , 7]);
+                        return [4 /*yield*/, database_1.default.connect()];
+                    case 1:
+                        myConn = _a.sent();
+                        sql1 = "SELECT role FROM users WHERE id=($1)";
+                        return [4 /*yield*/, myConn.query(sql1, [product.user_id])];
+                    case 2:
+                        result1 = _a.sent();
+                        console.log(result1.rows[0].role);
+                        if (!(result1.rows[0].role === 'ADMIN')) return [3 /*break*/, 4];
+                        sql = "INSERT INTO products (name, price, category, quantity, description, images, user_id) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING *";
+                        return [4 /*yield*/, myConn.query(sql, [
+                                product.name,
+                                product.price,
+                                product.category,
+                                product.quantity,
+                                product.description,
+                                product.images,
+                                product.user_id
+                            ])];
+                    case 3:
+                        result = _a.sent();
+                        result.rows[0];
+                        myConn.release();
+                        return [2 /*return*/, result.rows[0]];
+                    case 4: throw new Error('Must to ba admin to create user');
+                    case 5: return [3 /*break*/, 7];
+                    case 6:
+                        err_4 = _a.sent();
+                        throw new Error("Can't create the product ".concat(err_4));
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    productModel.prototype.deleteProduct = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            var myConn, sql, result, err_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
-                        sql = "INSERT INTO products (name, price) VALUES($1, $2) RETURNING *";
-                        return [4 /*yield*/, myConn.query(sql, [product.name, product.price])];
+                        sql = "DELETE FROM products WHERE id=($1) RETURNING name, price, category, quantity, description, images";
+                        return [4 /*yield*/, myConn.query(sql, [id])];
                     case 2:
                         result = _a.sent();
                         myConn.release();
                         return [2 /*return*/, result.rows[0]];
                     case 3:
-                        err_3 = _a.sent();
-                        throw new Error("Can't create product ".concat(err_3));
+                        err_5 = _a.sent();
+                        throw new Error("Unable to delete this product ".concat(err_5));
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    productModel.prototype.updateProduct = function (product) {
+        return __awaiter(this, void 0, void 0, function () {
+            var myConn, sql, result, err_6;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, database_1.default.connect()];
+                    case 1:
+                        myConn = _a.sent();
+                        sql = "UPDATE products SET name=$1,price=$2,category=$3,quantity=$4,description=$5,images=$6 WHERE id=$7 RETURNING name, price, category, id, quantity, description ,images";
+                        return [4 /*yield*/, myConn.query(sql, [
+                                product.name,
+                                product.price,
+                                product.category,
+                                product.quantity,
+                                product.description,
+                                product.images,
+                                product.id
+                            ])];
+                    case 2:
+                        result = _a.sent();
+                        myConn.release();
+                        return [2 /*return*/, result.rows[0]];
+                    case 3:
+                        err_6 = _a.sent();
+                        throw new Error("Can't update");
                     case 4: return [2 /*return*/];
                 }
             });

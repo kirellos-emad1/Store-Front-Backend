@@ -27,6 +27,11 @@ describe("Test Product Endpoints responses", () => {
     const data: Product = {
       name: "milk",
       price: 5,
+      category:'drinks',
+      description:'healthy drink',
+      images:["img1.jpg"],
+      quantity:5,
+      user_id:1
     };
     const response = await request
       .post("/products")

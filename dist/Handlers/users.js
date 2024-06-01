@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -38,46 +38,111 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.authenticate = exports.deleteUser = exports.updateUser = exports.getSpecificUser = exports.getAllUsers = exports.createAdmin = exports.createUser = void 0;
 var express_1 = __importDefault(require("express"));
 var users_1 = require("../Models/users");
-var bcrypt_1 = __importDefault(require("bcrypt"));
-var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 var dotenv_1 = __importDefault(require("dotenv"));
+var database_1 = __importDefault(require("../database"));
 var jwt_auth_1 = __importDefault(require("../Middleware/jwt_auth"));
-dotenv_1["default"].config();
+dotenv_1.default.config();
 var user = new users_1.userModel();
-var index = function (_req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var result, err_1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+var create = function (req, res, role, isEmailVerified) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, email, firstName, lastName, password, myConn, emailCheckQuery, existingUser, result, tokens, err_1;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, user.index()];
+                _b.trys.push([0, 4, , 5]);
+                _a = req.body, email = _a.email, firstName = _a.firstName, lastName = _a.lastName, password = _a.password;
+                if (!firstName || firstName.length < 3) {
+                    throw new Error("First name should be at least 3 character long");
+                }
+                if (!lastName || lastName.length < 3) {
+                    throw new Error("First name should be at least 3 character long");
+                }
+                if (!password || password.length < 8) {
+                    throw new Error("Password Not valid please enter password with 8 character long");
+                }
+                return [4 /*yield*/, database_1.default.connect()];
             case 1:
-                result = _a.sent();
-                res.status(200).json(result);
-                return [3 /*break*/, 3];
+                myConn = _b.sent();
+                emailCheckQuery = "SELECT id FROM users WHERE email = $1";
+                return [4 /*yield*/, myConn.query(emailCheckQuery, [
+                        email.toLowerCase(),
+                    ])];
             case 2:
-                err_1 = _a.sent();
+                existingUser = _b.sent();
+                if (existingUser.rows.length > 0) {
+                    myConn.release();
+                    throw new Error("Email ".concat(email, " is already in use. Please choose another email or log in."));
+                }
+                return [4 /*yield*/, user.create({
+                        email: email,
+                        firstName: firstName,
+                        lastName: lastName,
+                        password: password,
+                        role: role,
+                        isEmailVerified: isEmailVerified,
+                    })];
+            case 3:
+                result = _b.sent();
+                tokens = jwt_auth_1.default.issueTokens(result);
+                res.cookie("REFRESH-TOKEN", tokens.refreshToken, { httpOnly: true });
+                res.cookie("ACCESS-TOKEN", tokens.accessToken, {
+                    httpOnly: true,
+                    expires: new Date(Date.now() + 15 * 60 * 1000),
+                });
+                res.json({
+                    status: 200,
+                    userData: result,
+                    tokens: tokens,
+                    message: "User has been created successfully",
+                });
+                return [3 /*break*/, 5];
+            case 4:
+                err_1 = _b.sent();
                 res.status(400).json("".concat(err_1));
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); };
-var show = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+var createUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, create(req, res, "USER", false)];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
+exports.createUser = createUser;
+var createAdmin = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, create(req, res, "ADMIN", true)];
+            case 1:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
+exports.createAdmin = createAdmin;
+var getAllUsers = function (_req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var result, err_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                return [4 /*yield*/, user.show(req.params.id)];
+                return [4 /*yield*/, user.getAllUsers()];
             case 1:
                 result = _a.sent();
-                if (!result)
-                    return [2 /*return*/, res.status(404).json({ error: "requested user doesn't exist" })];
-                res.status(200).json(result);
+                res.json({
+                    status: 200,
+                    data: result,
+                    message: "Here it is all users data",
+                });
                 return [3 /*break*/, 3];
             case 2:
                 err_2 = _a.sent();
@@ -87,37 +152,128 @@ var show = function (req, res) { return __awaiter(void 0, void 0, void 0, functi
         }
     });
 }); };
-var create = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var hashpwd, info, result, token, err_3;
+exports.getAllUsers = getAllUsers;
+var getSpecificUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var result, err_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
-                return [4 /*yield*/, bcrypt_1["default"].hash("".concat(req.body.password).concat(process.env.PEPPER), 10)];
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, user.getSpecificUser(req.params.id)];
             case 1:
-                hashpwd = _a.sent();
-                info = {
-                    hashpwd: hashpwd,
-                    email: req.body.email,
-                    firstName: req.body.firstName,
-                    lastName: req.body.lastName
-                };
-                return [4 /*yield*/, user.create(info)];
-            case 2:
                 result = _a.sent();
-                token = jsonwebtoken_1["default"].sign(result, process.env.TOKEN_SECRET);
-                res.status(200).json({ token: token, result: result });
-                return [3 /*break*/, 4];
-            case 3:
+                if (!result)
+                    return [2 /*return*/, res.status(404).json({ error: "requested user doesn't exist" })];
+                res.json({
+                    status: 200,
+                    data: result,
+                });
+                return [3 /*break*/, 3];
+            case 2:
                 err_3 = _a.sent();
                 res.status(400).json("".concat(err_3));
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); };
-var usersRouts = express_1["default"].Router();
-usersRouts.get("/", jwt_auth_1["default"], index);
-usersRouts.get("/:id", jwt_auth_1["default"], show);
-usersRouts.post("/", create);
-exports["default"] = usersRouts;
+exports.getSpecificUser = getSpecificUser;
+var updateUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, email, firstName, lastName, password, role, updatedAt, id, result, err_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body, email = _a.email, firstName = _a.firstName, lastName = _a.lastName, password = _a.password, role = _a.role, updatedAt = _a.updatedAt;
+                id = req.params.id;
+                return [4 /*yield*/, user.updateUser({
+                        id: id,
+                        email: email,
+                        firstName: firstName,
+                        lastName: lastName,
+                        password: password,
+                        role: role,
+                        updatedAt: updatedAt,
+                    })];
+            case 1:
+                result = _b.sent();
+                res.json({
+                    status: 200,
+                    data: result,
+                    message: "User has been updated just now",
+                });
+                return [3 /*break*/, 3];
+            case 2:
+                err_4 = _b.sent();
+                res.status(400).json("".concat(err_4));
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.updateUser = updateUser;
+var deleteUser = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var result, err_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, user.deleteUser(req.params.id)];
+            case 1:
+                result = _a.sent();
+                res.json({
+                    status: 200,
+                    data: result,
+                    message: "The user has been DELETED successfully",
+                });
+                return [3 /*break*/, 3];
+            case 2:
+                err_5 = _a.sent();
+                res.status(400).json(err_5);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.deleteUser = deleteUser;
+var authenticate = function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, email, password, userData, tokens, err_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                _b.trys.push([0, 2, , 3]);
+                _a = req.body, email = _a.email, password = _a.password;
+                return [4 /*yield*/, user.authenticate(email, password)];
+            case 1:
+                userData = _b.sent();
+                tokens = jwt_auth_1.default.issueTokens(userData);
+                if (!userData) {
+                    return [2 /*return*/, res.status(400).json("the email and password do not match")];
+                }
+                res.cookie("REFRESH-TOKEN", tokens.refreshToken, { httpOnly: true });
+                res.cookie("ACCESS-TOKEN", tokens.accessToken, {
+                    httpOnly: true,
+                    expires: new Date(Date.now() + 15 * 60 * 1000),
+                });
+                res.status(200).json({ userData: userData, tokens: tokens });
+                return [3 /*break*/, 3];
+            case 2:
+                err_6 = _b.sent();
+                res.status(400).json(err_6);
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); };
+exports.authenticate = authenticate;
+var usersRouts = express_1.default.Router();
+usersRouts.post("/register", exports.createUser);
+usersRouts.post("/register/admin", exports.createAdmin);
+usersRouts.post("/login", exports.authenticate);
+// usersRouts.post("/verify-email", verifyEmailRoute);
+// usersRouts.post("/get-otp", getOtp);
+usersRouts.get("/", exports.getAllUsers);
+usersRouts.patch("/my-profile/update/:id", exports.updateUser);
+usersRouts.get("/:id", jwt_auth_1.default.verifyAccessToken, exports.getSpecificUser);
+usersRouts.delete("/delete/:id", exports.deleteUser);
+exports.default = usersRouts;

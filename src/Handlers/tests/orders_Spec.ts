@@ -11,9 +11,9 @@ describe("Test Order Endpoints responses", () => {
 
   beforeAll(async (): Promise < void > => {
     const data: object = {
-      firstname: "abc",
-      lastname: "cba",
-      hashpwd: "12345",
+      firstName: "abc",
+      lastName: "cba",
+      password: "12345",
     };
 
     
@@ -24,6 +24,7 @@ describe("Test Order Endpoints responses", () => {
       .send({
         name: "milk",
         price: 5,
+        category:'Food'
       })
       .set("Authorization", `Bearer ${token}`);
   });

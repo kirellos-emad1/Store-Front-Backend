@@ -14,7 +14,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     function verb(n) { return function (v) { return step([n, v]); }; }
     function step(op) {
         if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
             if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
             if (y = 0, t) op = [op[0] & 2, t.value];
             switch (op[0]) {
@@ -38,23 +38,30 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.userModel = void 0;
 var database_1 = __importDefault(require("../database"));
+var bcrypt_1 = __importDefault(require("bcrypt"));
+var dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+var hashPassword = function (pass) {
+    var salt = parseInt(process.env.SALT_ROUND);
+    return bcrypt_1.default.hashSync("".concat(pass).concat(process.env.BCRYPT_PASSWORD), salt);
+};
 var userModel = /** @class */ (function () {
     function userModel() {
     }
-    userModel.prototype.index = function () {
+    userModel.prototype.getAllUsers = function () {
         return __awaiter(this, void 0, void 0, function () {
             var myConn, sql, result, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
-                        sql = "SELECT id, firstName, lastName, email FROM users";
+                        sql = "SELECT id, firstName, lastName, email, role, createdAt, updatedAt, isEmailVerified FROM users";
                         return [4 /*yield*/, myConn.query(sql)];
                     case 2:
                         result = _a.sent();
@@ -68,17 +75,17 @@ var userModel = /** @class */ (function () {
             });
         });
     };
-    userModel.prototype.show = function (id) {
+    userModel.prototype.getSpecificUser = function (id) {
         return __awaiter(this, void 0, void 0, function () {
             var myConn, sql, result, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
-                        sql = "SELECT id, firstName, lastName, email FROM users WHERE id=($1)";
+                        sql = "SELECT id, firstName, lastName, email, role, createdAt, updatedAt FROM users WHERE id=($1)";
                         return [4 /*yield*/, myConn.query(sql, [id])];
                     case 2:
                         result = _a.sent();
@@ -99,15 +106,18 @@ var userModel = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, database_1["default"].connect()];
+                        return [4 /*yield*/, database_1.default.connect()];
                     case 1:
                         myConn = _a.sent();
-                        sql = "INSERT INTO users (email, firstName, lastName, hashpwd) VALUES($1, $2, $3, $4) RETURNING id, firstName, lastName, email";
+                        sql = "INSERT INTO users (email, firstName, lastName, password, role, isEmailVerified) VALUES($1, $2, $3, $4, $5,$6) RETURNING id, firstName, lastName, email, role, isEmailVerified";
+                        info.role = info.role || "USER";
                         return [4 /*yield*/, myConn.query(sql, [
-                                info.email,
-                                info.firstName,
-                                info.lastName,
-                                info.hashpwd,
+                                info.email.toLowerCase(),
+                                info.firstName[0].toUpperCase() + info.firstName.slice(1).toLowerCase(),
+                                info.lastName[0].toUpperCase() + info.lastName.slice(1).toLowerCase(),
+                                hashPassword(info.password),
+                                info.role,
+                                info.isEmailVerified
                             ])];
                     case 2:
                         result = _a.sent();
@@ -118,6 +128,140 @@ var userModel = /** @class */ (function () {
                         console.log(err_3);
                         throw new Error("can't create user ".concat(err_3));
                     case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    userModel.prototype.updateUser = function (info) {
+        return __awaiter(this, void 0, void 0, function () {
+            var myConn, id, firstName, lastName, email, password, role, updateFields, values, sql, result, err_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, database_1.default.connect()];
+                    case 1:
+                        myConn = _a.sent();
+                        id = info.id, firstName = info.firstName, lastName = info.lastName, email = info.email, password = info.password, role = info.role;
+                        updateFields = [];
+                        values = [id];
+                        if (firstName) {
+                            updateFields.push("firstName=$".concat(values.length + 1));
+                            values.push(firstName[0].toUpperCase() + firstName.slice(1).toLowerCase());
+                        }
+                        if (lastName) {
+                            updateFields.push("lastName=$".concat(values.length + 1));
+                            values.push(lastName[0].toUpperCase() + lastName.slice(1).toLowerCase());
+                        }
+                        if (email) {
+                            updateFields.push("email=$".concat(values.length + 1));
+                            values.push(email.toLowerCase());
+                        }
+                        if (password) {
+                            updateFields.push("password=$".concat(values.length + 1));
+                            values.push(hashPassword(password));
+                        }
+                        if (role) {
+                            updateFields.push("role=$".concat(values.length + 1));
+                            values.push(role);
+                        }
+                        if (updateFields.length === 0) {
+                            throw new Error("No fields to update specified.");
+                        }
+                        updateFields.push("updatedAt=$".concat(values.length + 1));
+                        values.push(new Date());
+                        sql = "UPDATE users SET ".concat(updateFields.join(", "), " WHERE id=$1 RETURNING id, firstName, lastName, email, password, role, createdAt, updatedAt");
+                        return [4 /*yield*/, myConn.query(sql, values)];
+                    case 2:
+                        result = _a.sent();
+                        myConn.release();
+                        return [2 /*return*/, result.rows[0]];
+                    case 3:
+                        err_4 = _a.sent();
+                        throw new Error("Unable to update user: ".concat(err_4));
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    userModel.prototype.userVerified = function (info) {
+        return __awaiter(this, void 0, void 0, function () {
+            var myConn, email, isEmailVerified, sql, result, err_5;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, database_1.default.connect()];
+                    case 1:
+                        myConn = _a.sent();
+                        email = info.email, isEmailVerified = info.isEmailVerified;
+                        sql = "UPDATE users SET isEmailVerified=$2 WHERE email=$1 RETURNING id, firstName, lastName, email, password, role, createdAt, updatedAt, isEmailVerified";
+                        return [4 /*yield*/, myConn.query(sql, [email, isEmailVerified])];
+                    case 2:
+                        result = _a.sent();
+                        myConn.release();
+                        return [2 /*return*/, result.rows[0]];
+                    case 3:
+                        err_5 = _a.sent();
+                        throw new Error("Unable to verify user: ".concat(err_5));
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    userModel.prototype.deleteUser = function (id) {
+        return __awaiter(this, void 0, void 0, function () {
+            var myConn, sql, result, err_6;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, database_1.default.connect()];
+                    case 1:
+                        myConn = _a.sent();
+                        sql = "DELETE FROM users WHERE id=($1) RETURNING id, firstName, lastName, email, role";
+                        return [4 /*yield*/, myConn.query(sql, [id])];
+                    case 2:
+                        result = _a.sent();
+                        myConn.release();
+                        return [2 /*return*/, result.rows[0]];
+                    case 3:
+                        err_6 = _a.sent();
+                        throw new Error("Unable to delete user: ".concat(err_6));
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    userModel.prototype.authenticate = function (email, password) {
+        return __awaiter(this, void 0, void 0, function () {
+            var myConn, sql, result, hashPassword_1, isPasswordValid, sql_1, userInfo, err_7;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 5, , 6]);
+                        return [4 /*yield*/, database_1.default.connect()];
+                    case 1:
+                        myConn = _a.sent();
+                        sql = "SELECT password FROM users WHERE email=$1";
+                        return [4 /*yield*/, myConn.query(sql, [email])];
+                    case 2:
+                        result = _a.sent();
+                        if (!result.rows.length) return [3 /*break*/, 4];
+                        hashPassword_1 = result.rows[0].password;
+                        isPasswordValid = bcrypt_1.default.compareSync("".concat(password).concat(process.env.BCRYPT_PASSWORD), hashPassword_1);
+                        if (!isPasswordValid) return [3 /*break*/, 4];
+                        sql_1 = "SELECT email, firstName, lastName, id, role,isEmailVerified  FROM users WHERE email=($1)";
+                        return [4 /*yield*/, myConn.query(sql_1, [email])];
+                    case 3:
+                        userInfo = _a.sent();
+                        myConn.release();
+                        return [2 /*return*/, userInfo.rows[0]];
+                    case 4: throw new Error("password don't match");
+                    case 5:
+                        err_7 = _a.sent();
+                        throw new Error("Unable to authenticate user ".concat(err_7));
+                    case 6: return [2 /*return*/];
                 }
             });
         });
